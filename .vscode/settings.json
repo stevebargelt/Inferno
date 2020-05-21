@@ -1,0 +1,24 @@
+{
+    "cSpell.words": [
+        "Traeger"
+    ],
+    "workbench.colorCustomizations": {
+        "activityBar.activeBackground": "#c91e21",
+        "activityBar.activeBorder": "#093708",
+        "activityBar.background": "#c91e21",
+        "activityBar.foreground": "#e7e7e7",
+        "activityBar.inactiveForeground": "#e7e7e799",
+        "activityBarBadge.background": "#093708",
+        "activityBarBadge.foreground": "#e7e7e7",
+        "statusBar.background": "#9d171a",
+        "statusBar.border": "#9d171a",
+        "statusBar.foreground": "#e7e7e7",
+        "statusBarItem.hoverBackground": "#c91e21",
+        "titleBar.activeBackground": "#9d171a",
+        "titleBar.activeForeground": "#e7e7e7",
+        "titleBar.border": "#9d171a",
+        "titleBar.inactiveBackground": "#9d171a99",
+        "titleBar.inactiveForeground": "#e7e7e799"
+    },
+    "peacock.color": "#9d171a"
+}
