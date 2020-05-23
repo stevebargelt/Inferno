@@ -16,7 +16,9 @@
       "pipeTransport": {
         "pipeCwd": "${workspaceFolder}",
         "pipeProgram": "ssh",
-        "pipeArgs": ["pi@10.0.20.30"],
+        "pipeArgs": [
+          "pi@10.0.20.30"
+        ],
         "debuggerPath": "/home/pi/vsdbg/vsdbg"
       }
     },
@@ -27,7 +29,10 @@
       "processId": "${command:pickRemoteProcess}",
       "pipeTransport": {
         "pipeProgram": "ssh",
-        "pipeArgs": ["-T", "pi@10.0.20.30"],
+        "pipeArgs": [
+          "-T",
+          "pi@10.0.20.30"
+        ],
         "debuggerPath": "~/vsdbg/vsdbg",
         "pipeCwd": "${workspaceRoot}",
         "quoteArgs": true
@@ -41,12 +46,10 @@
       "type": "coreclr",
       "request": "launch",
       "preLaunchTask": "build",
-      // If you have changed target frameworks, make sure to update the program path.
       "program": "${workspaceFolder}/Inferno.Api/bin/Debug/netcoreapp3.0/Inferno.Api.dll",
       "args": [],
       "cwd": "${workspaceFolder}/Inferno.Api",
       "stopAtEntry": false,
-      // Enable launching a web browser when ASP.NET Core starts. For more information: https://aka.ms/VSCode-CS-LaunchJson-WebBrowser
       "serverReadyAction": {
         "action": "openExternally",
         "pattern": "^\\s*Now listening on:\\s+(https?://\\S+)"
@@ -63,6 +66,12 @@
       "type": "coreclr",
       "request": "attach",
       "processId": "${command:pickProcess}"
+    },
+    {
+      "name": "Attach to .NET Functions",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:azureFunctions.pickProcess}"
     }
   ]
 }
