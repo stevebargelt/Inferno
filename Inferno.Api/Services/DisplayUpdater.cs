@@ -36,7 +36,7 @@ namespace Inferno.Api.Services
                             _display.DisplayText(DateTime.Now.ToShortDateString().PadLeft(20),
                                 DateTime.Now.ToShortTimeString().PadLeft(20),
                                 new string('-', 20),
-                                "Ready");
+                                "MeatGeek Ready");
                             break;
 
                         case SmokerMode.Shutdown:

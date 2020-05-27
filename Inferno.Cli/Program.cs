@@ -175,6 +175,8 @@ namespace Inferno.Cli
 
         static async Task SetMode(SmokerMode smokerMode)
         {
+            Console.WriteLine("smokerMode=" + smokerMode);
+            Console.WriteLine($"\"{smokerMode}\"");
             await InfernoApiRequest(Endpoint.mode, $"\"{smokerMode}\"");
         }
 
@@ -233,11 +235,17 @@ namespace Inferno.Cli
 
             if (string.IsNullOrEmpty(content))
             {
+                Console.WriteLine("GET");
+                Console.WriteLine(requestUri);
                 result = await client.GetAsync(requestUri);
             }
             else
             {
+                Console.WriteLine("POST");
                 HttpContent requestBody = new StringContent($"{content}", Encoding.UTF8, "application/json");
+                HttpContent requestContent = new StringContent($"{content}", Encoding.UTF8, "application/json");
+                Console.WriteLine(requestUri);
+                Console.WriteLine("requestBody=" + requestContent.ReadAsStringAsync().Result);
                 result = await client.PostAsync(requestUri, requestBody);
             }
             result.EnsureSuccessStatusCode();

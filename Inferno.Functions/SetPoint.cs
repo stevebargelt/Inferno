@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using System.Net.Http;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -9,16 +8,15 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Relay;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Net.Http;
 using Inferno.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
 
-namespace Infero.Function
+namespace Inferno.Functions
 {
-    public static class GetStatus
+
+    public static class SetPoint
     {
         private static IConfiguration Configuration { set; get; }
         private static string RelayNamespace;
@@ -26,7 +24,7 @@ namespace Infero.Function
         private static string KeyName;
         private static string Key;
 
-        static GetStatus()
+        static SetPoint()
         {
             var builder = new ConfigurationBuilder();
             var connString = Environment.GetEnvironmentVariable("APP_CONFIG_CONN_STRING", EnvironmentVariableTarget.Process);
@@ -34,9 +32,9 @@ namespace Infero.Function
             Configuration = builder.Build();
         }
 
-        [FunctionName("status")]
+        [FunctionName("setpoint")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)][FromBody] string value,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
@@ -45,31 +43,51 @@ namespace Infero.Function
             ConnectionName = Configuration["RelayConnectionName"];
             KeyName = Configuration["RelayKeyName"];
             Key = Configuration["RelayKey"];
-
-            // Begin
-            HttpClient client = HttpClientFactory.Create();
             var baseUri = new Uri(string.Format("https://{0}/{1}/", RelayNamespace, ConnectionName));
+
+            HttpResponseMessage response;
+
+            log.LogInformation("value = " + value);
+            response = await SendRelayRequest(baseUri, "setpoint", HttpMethod.Post, value);
+
+            if (response.IsSuccessStatusCode)
+            {
+                log.LogInformation("response.IsSuccessStatusCode PASSED");
+                string payload = await response.Content.ReadAsStringAsync();
+                return new OkObjectResult(payload);
+            }
+            else
+            {
+                log.LogInformation("response.IsSuccessStatusCode FAILED");
+                return new BadRequestObjectResult(response.ReasonPhrase);
+            }
+
+        }
+
+        // ************************************************************
+        // The following should be broken out into a seperate class/obj
+        // ************************************************************
+        private static async Task<HttpResponseMessage> SendRelayRequest(Uri baseUri, string apiEndpoint, HttpMethod method, string payload = "")
+        {
+            HttpClient client = HttpClientFactory.Create();
             var request = new HttpRequestMessage()
             {
-                RequestUri = new Uri(baseUri, "status"),
-                Method = HttpMethod.Get
+                RequestUri = new Uri(baseUri, apiEndpoint),
+                Method = method
             };
+
+            if (method == HttpMethod.Post)
+            {
+                request.Content = new StringContent(payload);
+                request.Content.Headers.ContentType.MediaType = "application/json";
+                request.Content.Headers.ContentType.CharSet = null;
+            }
 
             await AddAuthToken(request);
 
             var response = await client.SendAsync(request);
 
-            if (response.IsSuccessStatusCode)
-            {
-                string payload = await response.Content.ReadAsStringAsync();
-
-                return new OkObjectResult(payload);
-            }
-            else
-            {
-                return new BadRequestObjectResult(response.ReasonPhrase);
-            }
-
+            return response;
         }
 
         private static async Task AddAuthToken(HttpRequestMessage request)
@@ -80,6 +98,7 @@ namespace Infero.Function
             request.Headers.Add("ServiceBusAuthorization", token);
         }
 
-
     }
 }
+
+
