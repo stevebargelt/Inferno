@@ -11,6 +11,7 @@ namespace Inferno.Api.Services
 {
     public class Smoker : ISmoker
     {
+        string _smokerId;
         SmokerMode _mode;
         IRelayDevice _auger;
         IRelayDevice _blower;
@@ -44,6 +45,7 @@ namespace Inferno.Api.Services
                         IRtdArray rtdArray,
                         IDisplay display)
         {
+            _smokerId = "inferno1";
             _auger = auger;
             _blower = blower;
             _igniter = igniter;
@@ -65,6 +67,18 @@ namespace Inferno.Api.Services
         }
 
         public SmokerMode Mode => _mode;
+
+        public string SmokerId
+        {
+            get
+            {
+                return _smokerId;
+            }
+            set
+            {
+                _smokerId = value;
+            }
+        }
 
         public int SetPoint
         {

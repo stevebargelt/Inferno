@@ -21,13 +21,15 @@ namespace Inferno.IoT
 
         static async Task Main(string[] args)
         {
-            Console.WriteLine("Timestamp,Setpoint,Grill,Probe1,Probe2,Probe3,Probe4");
+            Console.WriteLine("partitionKey,Timestamp,SmokerId,Setpoint,Grill,Probe1,Probe2,Probe3,Probe4");
             HttpClient _client = new HttpClient();
 
             while (true)
             {
                 SmokerStatus status = JsonConvert.DeserializeObject<SmokerStatus>(await _client.GetStringAsync("http://localhost:5000/api/status"));
-                Console.WriteLine($"{status.CurrentTime},{status.SetPoint},{status.Temps.GrillTemp},{status.Temps.Probe1Temp},{status.Temps.Probe2Temp},{status.Temps.Probe3Temp},{status.Temps.Probe4Temp}");
+                status.SmokerId = DeviceId;
+                status.PartitionKey = $"{status.SmokerId}-{DateTime.UtcNow:yyyy-MM}";
+                Console.WriteLine($"{status.PartitionKey},{status.CurrentTime},{status.SmokerId},{status.SetPoint},{status.Temps.GrillTemp},{status.Temps.Probe1Temp},{status.Temps.Probe2Temp},{status.Temps.Probe3Temp},{status.Temps.Probe4Temp}");
                 await SendMsgIotHub(status);
                 await Task.Delay(TimeSpan.FromSeconds(5));
             }

@@ -36,20 +36,10 @@ namespace Inferno.Functions
             {
                 try
                 {
-                    
                     //var messageBody = Encoding.UTF8.GetString(smokerStatusData.Body.Array, smokerStatusData.Body.Offset, smokerStatusData.Body.Count);
                     var smokerStatusString = JsonConvert.SerializeObject(smokerStatus);
                     log.LogInformation($"SmokerStatus: {smokerStatusString}"); 
-                    // // Update the partitionKey value.
-                    // // The partitionKey property represents a synthetic composite partition key for the
-                    // // Cosmos DB container, consisting of the VIN + current year/month. Using a composite
-                    // // key instead of simply the VIN provides us with the following benefits:
-                    // // (1) Distributing the write workload at any given point in time over a high cardinality
-                    // // of partition keys.
-                    // // (2) Ensuring efficient routing on queries on a given VIN - you can spread these across
-                    // // time, e.g. SELECT * FROM c WHERE c.partitionKey IN (�VIN123-2019-01�, �VIN123-2019-02�, �)
-                    // // (3) Scale beyond the 10GB quota for a single partition key value.
-                    // vehicleEvent.partitionKey = $"{vehicleEvent.vin}-{DateTime.UtcNow:yyyy-MM}";
+                    smokerStatus.PartitionKey = $"inferno1-{DateTime.UtcNow:yyyy-MM}";
                     // // Set the TTL to expire the document after 60 days.
                     // vehicleEvent.ttl = 60 * 60 * 24 * 60;
                     // vehicleEvent.timestamp = DateTime.UtcNow;
