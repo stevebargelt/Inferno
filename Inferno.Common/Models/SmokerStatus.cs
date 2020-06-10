@@ -19,6 +19,7 @@ namespace Inferno.Common.Models
         /// </summary>
         [JsonProperty("partitionKey")] public string PartitionKey { get; set; }
         [JsonProperty("id")] public string Id { get; set; }
+        [JsonProperty] public int? ttl { get; set; }
         [JsonProperty] public string SmokerId { get; set; }
         [JsonProperty] public bool AugerOn { get; set; }
         [JsonProperty] public bool BlowerOn { get; set; }

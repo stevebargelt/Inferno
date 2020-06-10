@@ -40,8 +40,8 @@ namespace Inferno.Functions
                     var smokerStatusString = JsonConvert.SerializeObject(smokerStatus);
                     log.LogInformation($"SmokerStatus: {smokerStatusString}"); 
                     smokerStatus.PartitionKey = $"inferno1-{DateTime.UtcNow:yyyy-MM}";
-                    // // Set the TTL to expire the document after 60 days.
-                    // vehicleEvent.ttl = 60 * 60 * 24 * 60;
+                    // // Set the TTL to expire the document after 365 days.
+                    smokerStatus.ttl = 60 * 60 * 24 * 365;
                     // vehicleEvent.timestamp = DateTime.UtcNow;
 
                     await smokerStatusOut.AddAsync(smokerStatus);
