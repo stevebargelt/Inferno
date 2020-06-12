@@ -40,13 +40,14 @@ namespace Inferno.Functions
                     var smokerStatusString = JsonConvert.SerializeObject(smokerStatus);
                     log.LogInformation($"SmokerStatus: {smokerStatusString}"); 
                     smokerStatus.PartitionKey = $"inferno1-{DateTime.UtcNow:yyyy-MM}";
-                    // // Set the TTL to expire the document after 365 days.
-                    smokerStatus.ttl = 60 * 60 * 24 * 365;
+                    // Set the TTL to expire the document after 15 days if it's not set elsewhere.
+                    //  - if it's set elsewhere the data might be part of a "cook" /session, if not
+                    //    we can purge the data in 15 days.
+                    if (smokerStatus.ttl is null || smokerStatus.ttl == 0 || smokerStatus.ttl == -1) {
+                        smokerStatus.ttl = 60 * 60 * 24 * 15;
+                    }
                     // vehicleEvent.timestamp = DateTime.UtcNow;
-
                     await smokerStatusOut.AddAsync(smokerStatus);
-
-                    //await Task.Yield();
                 }
                 catch (Exception e)
                 {
@@ -55,8 +56,9 @@ namespace Inferno.Functions
                     exceptions.Add(e);
                 }
             }
-            // Once processing of the batch is complete, if any messages in the batch failed processing throw an exception so that there is a record of the failure.
-
+ 
+            // Once processing of the batch is complete, if any messages in the batch failed processing throw an exception so that 
+            //      there is a record of the failure.
             if (exceptions.Count > 1)
                 throw new AggregateException(exceptions);
 
