@@ -5,8 +5,8 @@ namespace Inferno.Common.Models
 {
     public class Session
     {
-        [JsonProperty("partitionKey")] public string PartitionKey { get; set; }
-        [JsonProperty] public string Id { get; set; }
+        [JsonProperty("partitionKey")] public string PartitionKey => SmokerId;
+        [JsonProperty("id")] public string Id { get; set; }
         [JsonProperty] public string SmokerId { get; set; }
         [JsonProperty] public string Title { get; set; }
         [JsonProperty] public string Description { get; set; }

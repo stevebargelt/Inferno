@@ -16,6 +16,7 @@ namespace Inferno.Functions
 {
     public static class Sessions
     {
+
         [FunctionName("CreateSession")]
         public static async Task<IActionResult> CreateSession(
             [HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "session")] HttpRequest req, 
@@ -30,10 +31,10 @@ namespace Inferno.Functions
             try 
             {
                 string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+                log.LogInformation(requestBody);
                 var input = JsonConvert.DeserializeObject<Session>(requestBody);
 
                 var session = new Session {
-                    PartitionKey = $"{input.SmokerId}-{DateTime.UtcNow:yyyy-MM}",
                     SmokerId = input.SmokerId,
                     Title = input.Title,
                     Description = input.Description,
@@ -77,7 +78,7 @@ namespace Inferno.Functions
                 databaseName: "Inferno",
                 collectionName: "sessions",
                 ConnectionStringSetting = "CosmosDBConnection",
-                Id = "{id}", PartitionKey = "inferno1-2020-06")] Object session,
+                Id = "{id}", PartitionKey = "inferno1")] Object session,
             ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
@@ -111,7 +112,7 @@ namespace Inferno.Functions
             Uri sessionCollectionUri = UriFactory.CreateDocumentCollectionUri("Inferno", "sessions");
 
             var document = client.CreateDocumentQuery(sessionCollectionUri, 
-                            new FeedOptions() { PartitionKey = new Microsoft.Azure.Documents.PartitionKey("inferno1-2020-06")})
+                            new FeedOptions() { PartitionKey = new Microsoft.Azure.Documents.PartitionKey("inferno1")})
                 .Where(t => t.Id == id)
                 .AsEnumerable()
                 .FirstOrDefault();
@@ -140,7 +141,7 @@ namespace Inferno.Functions
             Session updatedSessionDocument = (dynamic)document;
 
             return new OkObjectResult(updatedSessionDocument);
-    
         }
+
     }
 }
