@@ -33,10 +33,11 @@ namespace Inferno.Api.Services
                     switch (_smoker.Mode)
                     {
                         case SmokerMode.Ready:
-                            _display.DisplayText(DateTime.Now.ToShortDateString().PadLeft(20),
-                                DateTime.Now.ToShortTimeString().PadLeft(20),
-                                new string('-', 20),
-                                "MeatGeek Ready");
+                            _display.DisplayReady(_smoker.Temps, "MeatGeek Ready");
+                            // _display.DisplayText(DateTime.Now.ToShortDateString().PadLeft(20),
+                            //     DateTime.Now.ToShortTimeString().PadLeft(20),
+                            //     new string('-', 20),
+                            //     "MeatGeek Ready");
                             break;
 
                         case SmokerMode.Shutdown:

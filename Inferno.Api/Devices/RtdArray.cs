@@ -30,11 +30,11 @@ namespace Inferno.Api.Devices
             _adcReadTask = ReadAdc();
         }
 
-        public double GrillTemp => Math.Round(RtdTempFahrenheitFromResistanceSteinhartHart("grill", _grillResistances.Average()), 0);
-        public double Probe1Temp => Math.Round(RtdTempFahrenheitFromResistanceSteinhartHart("probe1", _probe1Resistances.Average()), 0);
-        public double Probe2Temp => Math.Round(RtdTempFahrenheitFromResistanceSteinhartHart("probe2", _probe2Resistances.Average()), 0);
-        public double Probe3Temp => Math.Round(RtdTempFahrenheitFromResistanceSteinhartHart("probe3", _probe3Resistances.Average()), 0);
-        public double Probe4Temp => Math.Round(RtdTempFahrenheitFromResistanceSteinhartHart("probe4", _probe4Resistances.Average()), 0);
+        public double GrillTemp => Math.Round(RtdTempFahrenheitFromResistance("grill", _grillResistances.Average()), 0)-6.0;
+        public double Probe1Temp => Math.Round(RtdTempFahrenheitFromResistance("probe1", _probe1Resistances.Average()), 0)-9.0;
+        public double Probe2Temp => Math.Round(RtdTempFahrenheitFromResistance("probe2", _probe2Resistances.Average()), 0)+1.0;
+        public double Probe3Temp => Math.Round(RtdTempFahrenheitFromResistance("probe3", _probe3Resistances.Average()), 0);
+        public double Probe4Temp => Math.Round(RtdTempFahrenheitFromResistance("probe4", _probe4Resistances.Average()), 0)-5.0;
 
         private async Task ReadAdc()
         {
@@ -111,12 +111,12 @@ namespace Inferno.Api.Devices
             double A = 3.90830e-3; // Coefficient A
             double B = -5.775e-7; // Coefficient B
             double ReferenceResistor = 1000;
-            Console.Write(Title);
-            Console.Write(" resistance=");
-            Console.Write(Resistance);
-            Console.Write(" tempC=");
+            // Console.Write(Title);
+            // Console.Write(" resistance=");
+            // Console.Write(Resistance);
+            // Console.Write(" tempC=");
             double TempCelsius = (-A + Math.Sqrt(A * A - 4 * B * (1 - Resistance / ReferenceResistor))) / (2 * B);
-            Console.WriteLine(TempCelsius);
+            // Console.WriteLine(TempCelsius);
             return TempCelsius * 9 / 5 + 32;
         }
 

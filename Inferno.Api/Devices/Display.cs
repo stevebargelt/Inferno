@@ -50,6 +50,28 @@ namespace Inferno.Api.Devices
             _lcd.Write(JustifyWithSpaces(mode, hardwareStatus));
         }
 
+        public void DisplayReady(Temps temps, string message)
+        {
+            string grillLabel = "Grill: ";
+            string probe1Label = "P1: ";
+            string probe2Label = "P2: ";
+            string probe3Label = "P3: ";
+            string probe4Label = "P4: ";
+            string grillValue = (temps.GrillTemp == -1) ? "Unplg" : $"{temps.GrillTemp}*F";
+            string probe1Value = (temps.Probe1Temp == -1) ? "Unplg" : $"{temps.Probe1Temp}*F";
+            string probe2Value = (temps.Probe2Temp == -1) ? "Unplg" : $"{temps.Probe2Temp}*F";
+            string probe3Value = (temps.Probe3Temp == -1) ? "Unplg" : $"{temps.Probe3Temp}*F";
+            string probe4Value = (temps.Probe4Temp == -1) ? "Unplg" : $"{temps.Probe4Temp}*F";
+
+            _lcd.SetCursorPosition(0, 0);
+            _lcd.Write(JustifyWithSpaces((probe1Label + probe1Value), (probe2Label + probe2Value)));
+            _lcd.SetCursorPosition(0, 1);
+            _lcd.Write(JustifyWithSpaces((probe3Label + probe3Value), (probe4Label + probe4Value)));
+            _lcd.SetCursorPosition(0, 2);
+            _lcd.Write((grillLabel + grillValue).PadRight(20));
+            _lcd.SetCursorPosition(0, 3);
+             _lcd.Write(message.PadRight(20));
+        }
         public void DisplayText(string line1 = "", string line2 = "", string line3 = "", string line4 = "")
         {
             _lcd.SetCursorPosition(0, 0);
