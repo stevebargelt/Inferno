@@ -1,0 +1,12 @@
+[Unit]
+Description=MeatGeek.RelayListener
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/inferno/listener
+ExecStart=/home/pi/inferno/listener/Inferno.RelayListener
+SyslogIdentifier=inferno.relaylistener
+User=pi
+
+[Install]
+WantedBy=multi-user.target
