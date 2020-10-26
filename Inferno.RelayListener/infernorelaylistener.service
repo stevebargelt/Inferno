@@ -3,6 +3,7 @@ Description=MeatGeek.RelayListener
 
 [Service]
 Type=simple
+Restart=always
 WorkingDirectory=/home/pi/inferno/listener
 ExecStart=/home/pi/inferno/listener/Inferno.RelayListener
 SyslogIdentifier=inferno.relaylistener
