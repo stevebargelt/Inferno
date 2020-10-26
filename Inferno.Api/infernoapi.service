@@ -1,0 +1,11 @@
+[Unit]
+Description=MeatGeek.Api
+
+[Service]
+Type=notify
+ExecStart=/home/pi/inferno/api/Inferno.Api
+SyslogIdentifier=inferno.api
+User=pi
+
+[Install]
+WantedBy=multi-user.target
