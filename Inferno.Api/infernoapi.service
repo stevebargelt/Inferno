@@ -3,6 +3,7 @@ Description=MeatGeek.Api
 
 [Service]
 Type=notify
+Restart=always
 ExecStart=/home/pi/inferno/api/Inferno.Api
 SyslogIdentifier=inferno.api
 User=pi
