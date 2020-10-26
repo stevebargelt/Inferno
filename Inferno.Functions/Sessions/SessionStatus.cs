@@ -49,6 +49,7 @@ namespace Inferno.Functions
 
             var EndTime = session.EndTime.HasValue ? session.EndTime : DateTime.UtcNow;
             log.LogInformation($"StartTime = {session.StartTime} EndTime = {EndTime}");
+            log.LogInformation($"UTC StartTime = {session.StartTime} UTC EndTime = {EndTime}");
 
             var container = _cosmosClient.GetContainer("Inferno", "status");
             // Create a query, defining the partition key so we don't execute a fan-out query (saving RUs), 

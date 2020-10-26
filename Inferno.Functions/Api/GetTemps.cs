@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,7 @@ using System.Net.Http;
 using Inferno.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+using Honeycomb;
 
 namespace Inferno.Functions
 {
@@ -23,6 +26,9 @@ namespace Inferno.Functions
         private static string ConnectionName;
         private static string KeyName;
         private static string Key;
+        private static string HoneycombKey;
+        private static string HoneycombDataset;        
+        private static LibHoney _libHoney;
 
         static GetTemps()
         {
@@ -30,15 +36,20 @@ namespace Inferno.Functions
             var connString = Environment.GetEnvironmentVariable("APP_CONFIG_CONN_STRING", EnvironmentVariableTarget.Process);
             builder.AddAzureAppConfiguration(connString);
             Configuration = builder.Build();
+            HoneycombKey = Configuration["HoneycombKey"];
+            HoneycombDataset = Configuration["HoneycombDataset"];
+            _libHoney = new LibHoney(HoneycombKey, HoneycombDataset);
+
         }
 
         [FunctionName("temps")]
         public static async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "temps/{traceid?}/{parentspanid?}")] HttpRequest req,
+            ILogger log, string? traceid, string? parentspanid)
         {
+            
             log.LogInformation("C# HTTP trigger function processed a request.");
-
+            var spanId = Guid.NewGuid().ToString();
             RelayNamespace = Configuration["RelayNamespace"];
             ConnectionName = Configuration["RelayConnectionName"];
             KeyName = Configuration["RelayKeyName"];
@@ -46,8 +57,23 @@ namespace Inferno.Functions
             var baseUri = new Uri(string.Format("https://{0}/{1}/", RelayNamespace, ConnectionName));
 
             HttpResponseMessage response;
-
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             response = await SendRelayRequest(baseUri, "temps", HttpMethod.Get, "");
+            stopWatch.Stop();
+            
+            _libHoney.SendNow (new Dictionary<string, object> () {
+                ["name"] = "temps",
+                ["service_name"] = "GetTemps",
+                ["trace_id"] = traceid,
+                ["trace.span_id"] = spanId,
+                ["trace.parent_id"] = parentspanid,
+                ["duration_ms"] = stopWatch.ElapsedMilliseconds,
+                ["method"] = "get",
+                ["status_code"] = response.StatusCode,
+                ["azFunction"] = "GetTemps",
+                ["endpoint"] = baseUri + "temps",
+            });
 
             if (response.IsSuccessStatusCode)
             {

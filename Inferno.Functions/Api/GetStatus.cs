@@ -1,6 +1,10 @@
 using System;
 using System.IO;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
@@ -9,12 +13,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Azure.Relay;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Inferno.Common.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Configuration.AzureAppConfiguration;
+
+using Honeycomb;
 
 namespace Infero.Function
 {
@@ -25,6 +28,9 @@ namespace Infero.Function
         private static string ConnectionName;
         private static string KeyName;
         private static string Key;
+        private static string HoneycombKey;
+        private static string HoneycombDataset;
+        private static LibHoney _libHoney;
 
         static GetStatus()
         {
@@ -32,6 +38,9 @@ namespace Infero.Function
             var connString = Environment.GetEnvironmentVariable("APP_CONFIG_CONN_STRING", EnvironmentVariableTarget.Process);
             builder.AddAzureAppConfiguration(connString);
             Configuration = builder.Build();
+            HoneycombKey = Configuration["HoneycombKey"];
+            HoneycombDataset = Configuration["HoneycombDataset"];
+            _libHoney = new LibHoney(HoneycombKey, HoneycombDataset);
         }
 
         [FunctionName("status")]
@@ -39,8 +48,8 @@ namespace Infero.Function
             [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
             ILogger log)
         {
+            
             log.LogInformation("C# HTTP trigger function processed a request.");
-
             RelayNamespace = Configuration["RelayNamespace"];
             ConnectionName = Configuration["RelayConnectionName"];
             KeyName = Configuration["RelayKeyName"];
@@ -57,7 +66,20 @@ namespace Infero.Function
 
             await AddAuthToken(request);
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
             var response = await client.SendAsync(request);
+            stopWatch.Stop();
+
+            _libHoney.SendNow (new Dictionary<string, object> () {
+                ["name"] = "status",
+                ["service_name"] = "GetStatus",
+                ["duration_ms"] = stopWatch.ElapsedMilliseconds,
+                ["method"] = "get",
+                ["status_code"] = response.StatusCode,
+                ["azFunction"] = "GetStatus",
+                ["endpoint"] = baseUri + "status",
+            });
 
             if (response.IsSuccessStatusCode)
             {
