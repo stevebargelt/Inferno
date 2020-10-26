@@ -19,21 +19,22 @@ namespace Inferno.RelayListener
                 .Build();
 
             string connectionString = configuration.GetValue<string>("RelayConnectionString");
+            string honeycombKey = configuration.GetValue<string>("HoneycombKey");
+            string honeycombDataset = configuration.GetValue<string>("HoneycombDataset");
 
             Uri targetUri = new Uri("http://localhost:5000/api/");
-            await RunAsync(connectionString, targetUri);
-
+            await RunAsync(connectionString, targetUri, honeycombKey, honeycombDataset); 
             return;
         }
 
-        static async Task RunAsync(string connectionString, Uri targetUri)
+        static async Task RunAsync(string connectionString, Uri targetUri, string honeycombKey, string honeycombDataset)
         {
             HybridConnectionReverseProxy hybridProxy;
             while (true)
             {
                 try
                 {
-                    hybridProxy = new HybridConnectionReverseProxy(connectionString, targetUri);
+                    hybridProxy = new HybridConnectionReverseProxy(connectionString, targetUri, honeycombKey, honeycombDataset);
                     await hybridProxy.OpenAsync(CancellationToken.None);
                     await Task.Delay(-1);
                 }

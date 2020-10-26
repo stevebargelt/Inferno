@@ -4,6 +4,7 @@
 using Microsoft.Azure.Relay;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.Net;
 using System.Net.Http;
@@ -11,6 +12,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Honeycomb;
 
 namespace Inferno.RelayListener
 {
@@ -20,9 +22,11 @@ namespace Inferno.RelayListener
         readonly HttpClient httpClient;
         readonly string hybridConnectionSubpath;
         readonly Uri _targetUri;
+        private static LibHoney _libHoney;
 
-        public HybridConnectionReverseProxy(string connectionString, Uri targetUri)
+        public HybridConnectionReverseProxy(string connectionString, Uri targetUri, string honeycombKey, string honeycombDataset)
         {
+            _libHoney = new LibHoney(honeycombKey, honeycombDataset);
             listener = new HybridConnectionListener(connectionString);
             httpClient = new HttpClient();
             httpClient.DefaultRequestHeaders.ExpectContinue = false;
@@ -32,6 +36,8 @@ namespace Inferno.RelayListener
 
         public async Task OpenAsync(CancellationToken cancelToken)
         {
+            Activity.DefaultIdFormat = ActivityIdFormat.W3C;
+
             listener.RequestHandler = (context) => this.RequestHandler(context);
             await listener.OpenAsync(cancelToken);
             Console.WriteLine($"Forwarding from {listener.Address} to {httpClient.BaseAddress}.");
@@ -126,8 +132,19 @@ namespace Inferno.RelayListener
         }
 
         void LogRequest(DateTime startTimeUtc, RelayedHttpListenerContext context)
-        {
+        {             
+
             DateTime stopTimeUtc = DateTime.UtcNow;
+
+            _libHoney.SendNow (new Dictionary<string, object> () {
+                ["name"] = "HybridConnectionReverseProxy",
+                ["service_name"] = "HybridConnectionReverseProxy",
+                ["duration_ms"] = (int)stopTimeUtc.Subtract(startTimeUtc).TotalMilliseconds,
+                ["method"] = context.Request.HttpMethod,
+                ["status_code"] = $"{(int)context.Response.StatusCode}",
+                ["azFunction"] = "GetTemps",
+                ["endpoint"] = $"\"{context.Request.Url.GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped)}\"",
+            });
             StringBuilder buffer = new StringBuilder();
             buffer.Append($"{startTimeUtc.ToString("s", CultureInfo.InvariantCulture)}, ");
             buffer.Append($"\"{context.Request.HttpMethod} {context.Request.Url.GetComponents(UriComponents.PathAndQuery, UriFormat.Unescaped)}\", ");
