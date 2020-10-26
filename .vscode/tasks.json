@@ -23,7 +23,7 @@
             "type": "process",
             "problemMatcher": "$msCompile",
             "options": {
-                "cwd": "${workspaceFolder}/Inferno.Functions"
+                "cwd": "${workspaceFolder}/Inferno.Functions.Sessions"
             }
         },
         {
@@ -42,7 +42,7 @@
             },
             "problemMatcher": "$msCompile",
             "options": {
-                "cwd": "${workspaceFolder}/Inferno.Functions"
+                "cwd": "${workspaceFolder}/Inferno.Functions.Sessions"
             }
         },
         {
@@ -58,7 +58,7 @@
             "type": "process",
             "problemMatcher": "$msCompile",
             "options": {
-                "cwd": "${workspaceFolder}/Inferno.Functions"
+                "cwd": "${workspaceFolder}/Inferno.Functions.Sessions"
             }
         },
         {
@@ -75,14 +75,14 @@
             "dependsOn": "clean release",
             "problemMatcher": "$msCompile",
             "options": {
-                "cwd": "${workspaceFolder}/Inferno.Functions"
+                "cwd": "${workspaceFolder}/Inferno.Functions.Sessions"
             }
         },
         {
             "type": "func",
             "dependsOn": "build",
             "options": {
-                "cwd": "${workspaceFolder}/Inferno.Functions/bin/Debug/netcoreapp3.1"
+                "cwd": "${workspaceFolder}/Inferno.Functions.Sessions/bin/Debug/netcoreapp3.1"
             },
             "command": "host start",
             "isBackground": true,
