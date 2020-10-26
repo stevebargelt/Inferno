@@ -1,0 +1,13 @@
+[Unit]
+Description=MeatGeek.IoT
+
+[Service]
+Type=simple
+
+WorkingDirectory=/home/pi/inferno/iot
+ExecStart=/home/pi/inferno/iot/Inferno.IoT
+SyslogIdentifier=inferno.iot
+User=pi
+
+[Install]
+WantedBy=multi-user.target
