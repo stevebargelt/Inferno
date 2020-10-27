@@ -167,7 +167,10 @@ namespace Inferno.IoT
 
            try
             {
+                _deviceClient.SetMethodHandlerAsync("SetTelemetryInterval", SetTelemetryInterval, null).Wait();
                 await Task.WhenAll(SendEventAsync(), ReceiveMessagesAsync());
+                
+                // _deviceClient.SetMethodHandlerAsync("SmokerSetPoint", SmokerSetPoint, null).Wait();
             }
             catch (Exception ex)
             {
@@ -229,8 +232,8 @@ namespace Inferno.IoT
 
         private async Task ReceiveMessagesAsync()
         {
-            Console.WriteLine("\nDevice waiting for C2D messages from the hub...");
-            Console.WriteLine("Use the Azure Portal IoT Hub blade or Azure IoT Explorer to send a message to this device.");
+            // Console.WriteLine("\nDevice waiting for C2D messages from the hub...");
+            // Console.WriteLine("Use the Azure Portal IoT Hub blade or Azure IoT Explorer to send a message to this device.");
 
             using Message receivedMessage = await _deviceClient.ReceiveAsync(TimeSpan.FromSeconds(30));
             if (receivedMessage == null)
@@ -250,5 +253,30 @@ namespace Inferno.IoT
 
             await _deviceClient.CompleteAsync(receivedMessage);
         }
+
+        // Handle the direct method call
+        private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext)
+        {
+            var data = Encoding.UTF8.GetString(methodRequest.Data);
+
+            int newTelemetryInterval;
+            // Check the payload is a single integer value
+            if (Int32.TryParse(data, out newTelemetryInterval))
+            {
+                TelemetryInterval = TimeSpan.FromSeconds(newTelemetryInterval);
+                 _logger.LogInformation($"Telemetry interval set to {0} seconds", data);
+                // Acknowlege the direct method call with a 200 success message
+                string result = "{\"result\":\"Executed direct method: " + methodRequest.Name + "\"}";
+                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
+            }
+            else
+            {
+                // Acknowlege the direct method call with a 400 error message
+                string result = "{\"result\":\"Invalid parameter\"}";
+                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
+            }
+        }
+
     }
+    
 }

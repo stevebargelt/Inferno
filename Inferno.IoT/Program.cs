@@ -26,8 +26,6 @@ namespace Inferno.IoT
             "HostName=inferno.azure-devices.net;DeviceId=inferno1;SharedAccessKey=0zAFYmxyKgckxNjwBD92S4sSlv1K1A0ibcgwofbP+GI="
         };
 
-        private static int TelemetryInterval = 15; // Seconds
-
         // Replace with the device id you used when you created the device in Azure IoT Hub
         const string DeviceId = "inferno1";
         //static DeviceClient _deviceClient = DeviceClient.CreateFromConnectionString(DeviceConnectionString, TransportType.Mqtt);
@@ -58,29 +56,29 @@ namespace Inferno.IoT
             return 0;
         }
 
-        // Handle the direct method call
-        private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext)
-        {
-            var data = Encoding.UTF8.GetString(methodRequest.Data);
+        // // Handle the direct method call
+        // private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext)
+        // {
+        //     var data = Encoding.UTF8.GetString(methodRequest.Data);
 
-            // Check the payload is a single integer value
-            if (Int32.TryParse(data, out TelemetryInterval))
-            {
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("Telemetry interval set to {0} seconds", data);
-                Console.ResetColor();
+        //     // Check the payload is a single integer value
+        //     if (Int32.TryParse(data, out TelemetryInterval))
+        //     {
+        //         Console.ForegroundColor = ConsoleColor.Green;
+        //         Console.WriteLine("Telemetry interval set to {0} seconds", data);
+        //         Console.ResetColor();
 
-                // Acknowlege the direct method call with a 200 success message
-                string result = "{\"result\":\"Executed direct method: " + methodRequest.Name + "\"}";
-                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
-            }
-            else
-            {
-                // Acknowlege the direct method call with a 400 error message
-                string result = "{\"result\":\"Invalid parameter\"}";
-                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
-            }
-        }
+        //         // Acknowlege the direct method call with a 200 success message
+        //         string result = "{\"result\":\"Executed direct method: " + methodRequest.Name + "\"}";
+        //         return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
+        //     }
+        //     else
+        //     {
+        //         // Acknowlege the direct method call with a 400 error message
+        //         string result = "{\"result\":\"Invalid parameter\"}";
+        //         return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
+        //     }
+        // }
 
         private static Task<MethodResponse> SmokerSetPoint(MethodRequest methodRequest, object userContext)
         {
