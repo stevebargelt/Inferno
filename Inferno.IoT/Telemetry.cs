@@ -30,7 +30,7 @@ namespace Inferno.IoT
         private static ConnectionStatus s_connectionStatus;
         private static bool s_wasEverConnected;
          
-        private static HttpClient _httpClient;
+        private static HttpClient _httpClient = new HttpClient();
 
         // This was mostly copied from https://github.com/Azure-Samples/azure-iot-samples-csharp/blob/master/iot-hub/Samples/device/DeviceReconnectionSample/DeviceReconnectionSample.cs
 
@@ -38,7 +38,7 @@ namespace Inferno.IoT
         {
             _logger = logger;
             _deviceId = deviceId;
-            _httpClient= new HttpClient();
+            //_httpClient= new HttpClient();
             //_deviceClient = deviceClient ?? throw new ArgumentNullException(nameof(deviceClient));
             if (deviceConnectionStrings == null
                 || !deviceConnectionStrings.Any())
@@ -168,23 +168,19 @@ namespace Inferno.IoT
            try
             {
                 _deviceClient.SetMethodHandlerAsync("SetTelemetryInterval", SetTelemetryInterval, null).Wait();
+                _deviceClient.SetMethodHandlerAsync("SmokerSetPoint", SmokerSetPoint, null).Wait();
+                _deviceClient.SetMethodHandlerAsync("SmokerGetTemps", SmokerGetTemps, null).Wait();
+                _deviceClient.SetMethodHandlerAsync("SmokerGetStatus", SmokerGetStatus, null).Wait();
                 await Task.WhenAll(SendEventAsync(), ReceiveMessagesAsync());
-                
-                // _deviceClient.SetMethodHandlerAsync("SmokerSetPoint", SmokerSetPoint, null).Wait();
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Unrecoverable exception caught, user action is required, so exiting...: \n{ex}");
             }
-
-            // await SendEventAsync();
-            // await ReceiveMessagesAsync();
         }
 
         private async Task SendEventAsync()
         {
-            //Console.WriteLine("partitionKey,Timestamp,SmokerId,ttl,Setpoint,Grill,Probe1,Probe2,Probe3,Probe4");
-            //_logger.LogInformation($"partitionKey,Timestamp,SmokerId,ttl,Setpoint,Grill,Probe1,Probe2,Probe3,Probe4");
             while (true) //TODO: use cancellation context
             {   
                 if (s_connectionStatus == ConnectionStatus.Connected)
@@ -232,8 +228,6 @@ namespace Inferno.IoT
 
         private async Task ReceiveMessagesAsync()
         {
-            // Console.WriteLine("\nDevice waiting for C2D messages from the hub...");
-            // Console.WriteLine("Use the Azure Portal IoT Hub blade or Azure IoT Explorer to send a message to this device.");
 
             using Message receivedMessage = await _deviceClient.ReceiveAsync(TimeSpan.FromSeconds(30));
             if (receivedMessage == null)
@@ -255,7 +249,7 @@ namespace Inferno.IoT
         }
 
         // Handle the direct method call
-        private static Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext)
+        private Task<MethodResponse> SetTelemetryInterval(MethodRequest methodRequest, object userContext)
         {
             var data = Encoding.UTF8.GetString(methodRequest.Data);
 
@@ -277,6 +271,78 @@ namespace Inferno.IoT
             }
         }
 
-    }
+        private Task<MethodResponse> SmokerSetPoint(MethodRequest methodRequest, object userContext)
+        {
+            _logger.LogInformation($"SmokerSetPoint Called...");
+            var data = Encoding.UTF8.GetString(methodRequest.Data);
+
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri("http://localhost:5000/api/setpoint"),
+                Method = HttpMethod.Post
+            };
+
+            int setPoint;
+            // Check the payload is a single integer value
+            if (Int32.TryParse(data, out setPoint))
+            {
+                _logger.LogInformation($"Attempting to set Smoker SetPoint to {data} degrees F");
+                request.Content = new StringContent(data);
+                request.Content.Headers.ContentType.MediaType = "application/json";
+                request.Content.Headers.ContentType.CharSet = null;
+
+                var response = _httpClient.SendAsync(request);
+                _httpClient.GetStringAsync("http://localhost:5000/api/setpoint");
+                
+                 _logger.LogInformation($"Smoker SetPoint {data} degrees");
+                
+                // Acknowlege the direct method call with a 200 success message
+                string result = "{\"result\":\"Executed direct method: " + methodRequest.Name + "\"}";
+                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 200));
+            }
+            else
+            {
+                // Acknowlege the direct method call with a 400 error message
+                string result = "{\"result\":\"Invalid parameter\"}";
+                return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
+            }
+        }        
+
+        private Task<MethodResponse> SmokerGetTemps(MethodRequest methodRequest, object userContext)
+        {
+            _logger.LogInformation($"SmokerGetTemps Called...");
+
+            string url = "http://localhost:5000/api/temps";
+            string json;
+            using (HttpResponseMessage response = _httpClient.GetAsync(url).Result)
+            {
+                using (HttpContent content = response.Content)
+                {
+                    json = content.ReadAsStringAsync().Result;
+                }
+            }
+
+            return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(json), 200));
+
+        }  
+
+        private Task<MethodResponse> SmokerGetStatus(MethodRequest methodRequest, object userContext)
+        {
+            _logger.LogInformation($"SmokerGetStatus Called...");
+
+            string url = "http://localhost:5000/api/status";
+            string json;
+            using (HttpResponseMessage response = _httpClient.GetAsync(url).Result)
+            {
+                using (HttpContent content = response.Content)
+                {
+                    json = content.ReadAsStringAsync().Result;
+                }
+            }
+
+            return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(json), 200));
+
+        }         
+    }   
     
 }
