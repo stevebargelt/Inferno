@@ -1,5 +1,6 @@
 [Unit]
 Description=MeatGeek.RelayListener
+After=infernoapi.service
 
 [Service]
 Type=simple
@@ -10,4 +11,4 @@ SyslogIdentifier=inferno.relaylistener
 User=pi
 
 [Install]
-WantedBy=multi-user.target
+WantedBy=network-online.target
