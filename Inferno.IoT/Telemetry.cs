@@ -168,7 +168,8 @@ namespace Inferno.IoT
            try
             {
                 _deviceClient.SetMethodHandlerAsync("SetTelemetryInterval", SetTelemetryInterval, null).Wait();
-                _deviceClient.SetMethodHandlerAsync("SmokerSetPoint", SmokerSetPoint, null).Wait();
+                _deviceClient.SetMethodHandlerAsync("SmokerSetSetPoint", SmokerSetSetPoint, null).Wait();
+                _deviceClient.SetMethodHandlerAsync("SmokerGetSetPoint", SmokerGetSetPoint, null).Wait();
                 _deviceClient.SetMethodHandlerAsync("SmokerGetTemps", SmokerGetTemps, null).Wait();
                 _deviceClient.SetMethodHandlerAsync("SmokerGetStatus", SmokerGetStatus, null).Wait();
                 await Task.WhenAll(SendEventAsync(), ReceiveMessagesAsync());
@@ -271,9 +272,9 @@ namespace Inferno.IoT
             }
         }
 
-        private Task<MethodResponse> SmokerSetPoint(MethodRequest methodRequest, object userContext)
+        private Task<MethodResponse> SmokerSetSetPoint(MethodRequest methodRequest, object userContext)
         {
-            _logger.LogInformation($"SmokerSetPoint Called...");
+            _logger.LogInformation($"SmokerSetSetPoint Called...");
             var data = Encoding.UTF8.GetString(methodRequest.Data);
 
             var request = new HttpRequestMessage()
@@ -294,7 +295,7 @@ namespace Inferno.IoT
                 var response = _httpClient.SendAsync(request);
                 _httpClient.GetStringAsync("http://localhost:5000/api/setpoint");
                 
-                 _logger.LogInformation($"Smoker SetPoint {data} degrees");
+                _logger.LogInformation($"Smoker SetPoint {data} degrees");
                 
                 // Acknowlege the direct method call with a 200 success message
                 string result = "{\"result\":\"Executed direct method: " + methodRequest.Name + "\"}";
@@ -307,6 +308,28 @@ namespace Inferno.IoT
                 return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(result), 400));
             }
         }        
+        private Task<MethodResponse> SmokerGetSetPoint(MethodRequest methodRequest, object userContext)
+        {
+            _logger.LogInformation($"SmokerGetSetPoint Called...");
+            var data = Encoding.UTF8.GetString(methodRequest.Data);
+
+            var request = new HttpRequestMessage()
+            {
+                RequestUri = new Uri("http://localhost:5000/api/setpoint"),
+                Method = HttpMethod.Get
+            };
+            _logger.LogInformation($"Attempting to GET Smoker SetPoint.");
+            string url = "http://localhost:5000/api/setpoint";
+            string json;
+            using (HttpResponseMessage response = _httpClient.GetAsync(url).Result)
+            {
+                using (HttpContent content = response.Content)
+                {
+                    json = content.ReadAsStringAsync().Result;
+                }
+            }
+            return Task.FromResult(new MethodResponse(Encoding.UTF8.GetBytes(json), 200));
+        } 
 
         private Task<MethodResponse> SmokerGetTemps(MethodRequest methodRequest, object userContext)
         {
